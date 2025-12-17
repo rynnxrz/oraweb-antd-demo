@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Table, Space, Segmented, Input, Select, message } from 'antd';
 import { PageTableWrapper } from '../components/common/PageTableWrapper';
 import { useNavigate } from 'react-router-dom';
 import { AppstoreOutlined, DollarOutlined, DropboxOutlined, ScheduleOutlined } from '@ant-design/icons';
 import { useContractColumns } from './ContractList/hooks/useContractColumns';
-import { useTableScroll } from './ContractList/hooks/useTableScroll';
+import { useTableScroll, useTableScrollSpy } from './ContractList/hooks/useTableScroll';
+import TablePanner from '../components/common/TablePanner'; // Import TablePanner
 import { contractsApi } from '../apis';
 import type { GetContractResponse } from '../types/schema';
 import { ContractStatusEnum } from '../types/schema';
@@ -76,8 +77,16 @@ const ContractList: React.FC = () => {
     const [filterStatus, setFilterStatus] = useState('Pending');
 
     // -- Hooks --
+    // -- Hooks --
     const { scrollToSection } = useTableScroll();
     const columns = useContractColumns(navigate);
+
+    // Ref for Panner
+    const tableWrapperRef = useRef<HTMLDivElement>(null);
+    const isProgrammaticScroll = useRef(false);
+
+    // Sync Tabs with Scroll
+    useTableScrollSpy(tableWrapperRef, ['reqs', 'finance', 'pkg', 'plan'], setActiveTab, isProgrammaticScroll);
 
     // -- Fetch Data --
     useEffect(() => {
@@ -112,8 +121,14 @@ const ContractList: React.FC = () => {
 
     // -- Logic --
     const handleTabClick = (value: string) => {
+        // Lock scroll spy during programmatic scroll
+        isProgrammaticScroll.current = true;
         setActiveTab(value);
         scrollToSection(value);
+        // Unlock after smooth scroll animation completes (~800ms)
+        setTimeout(() => {
+            isProgrammaticScroll.current = false;
+        }, 800);
     };
 
     // -- UI --
@@ -149,32 +164,37 @@ const ContractList: React.FC = () => {
                 </Space>
             }
             rightTabs={
-                <Segmented
-                    options={[
-                        { label: 'Reqs', value: 'reqs', icon: <AppstoreOutlined /> },
-                        { label: 'Finance', value: 'finance', icon: <DollarOutlined /> },
-                        { label: 'Pkg', value: 'pkg', icon: <DropboxOutlined /> },
-                        { label: 'Plan', value: 'plan', icon: <ScheduleOutlined /> },
-                    ]}
-                    value={activeTab}
-                    onChange={handleTabClick}
-                />
+                <Space>
+                    <Segmented
+                        options={[
+                            { label: 'Reqs', value: 'reqs', icon: <AppstoreOutlined /> },
+                            { label: 'Finance', value: 'finance', icon: <DollarOutlined /> },
+                            { label: 'Pkg', value: 'pkg', icon: <DropboxOutlined /> },
+                            { label: 'Plan', value: 'plan', icon: <ScheduleOutlined /> },
+                        ]}
+                        value={activeTab}
+                        onChange={handleTabClick}
+                    />
+                    <TablePanner tableRef={tableWrapperRef} />
+                </Space>
             }
             table={
-                <Table
-                    className="contract-list-table"
-                    dataSource={filteredContracts}
-                    columns={columns as any}
-                    rowKey="id"
-                    pagination={{ pageSize: 10, showSizeChanger: false }}
-                    size="middle"
-                    loading={loading}
-                    // Fix double scrollbar by setting Y scroll and accounting for layout
-                    // Assuming roughly 280px for header/filters + some buffer. 
-                    // Use CSS variable if available or calc.
-                    scroll={{ x: 'max-content', y: 'calc(100vh - 280px)' }}
-                    tableLayout="fixed"
-                />
+                <div ref={tableWrapperRef} style={{ height: '100%', width: '100%' }}>
+                    <Table
+                        className="contract-list-table"
+                        dataSource={filteredContracts}
+                        columns={columns as any}
+                        rowKey="id"
+                        pagination={{ pageSize: 10, showSizeChanger: false }}
+                        size="middle"
+                        loading={loading}
+                        // Fix double scrollbar by setting Y scroll and accounting for layout
+                        // Assuming roughly 280px for header/filters + some buffer. 
+                        // Use CSS variable if available or calc.
+                        scroll={{ x: 'max-content', y: 'calc(100vh - 280px)' }}
+                        tableLayout="fixed"
+                    />
+                </div>
             }
         />
     );

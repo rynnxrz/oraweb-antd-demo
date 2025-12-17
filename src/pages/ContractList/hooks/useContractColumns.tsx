@@ -141,10 +141,18 @@ export const useContractColumns = (navigate: (path: string) => void) => {
             dataIndex: 'pkg_arrive_date',
             key: 'pkg_arrive_date',
             width: 110,
-            className: 'col-anchor-pkg', // Scroll Anchor
+
             render: (d: string) => <Text style={{ color: token.colorText, fontSize: 12 }}>{d ? dayjs(d).format('DD/MM/YYYY') : '-'}</Text>
         },
-        { title: <>Package<br />Name</>, dataIndex: 'spec', key: 'pkgName', width: 120, ellipsis: true, render: (v: string) => <Text style={{ fontSize: 12, color: token.colorText }} ellipsis={{ tooltip: v }}>{v || 'Standard'}</Text> },
+        {
+            title: <>Package<br />Name</>,
+            dataIndex: 'spec',
+            key: 'pkgName',
+            width: 120,
+            className: 'col-anchor-pkg',
+            ellipsis: true,
+            render: (v: string) => <Text style={{ fontSize: 12, color: token.colorText }} ellipsis={{ tooltip: v }}>{v || 'Standard'}</Text>
+        },
         {
             title: 'Status', dataIndex: 'pkgStatus', key: 'pkgStatus', width: 90, render: (s: string) => {
                 const color = s === 'Ready' ? 'success' : s === 'Missing' ? 'error' : 'warning';

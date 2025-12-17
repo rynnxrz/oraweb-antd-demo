@@ -1,48 +1,15 @@
 /* Scoped styles for ContractList Table */
 
-/* 
-   We target .contract-list-table (which we will add to the component)
-   to ensure these styles don't leak.
-*/
-
-/* 1. Custom Scrollbar for the table body */
-/* Note: AntD puts overflow on .ant-table-body (or .ant-table-content depending on props) */
+/* Hide native scrollbar */
 .contract-list-table .ant-table-body::-webkit-scrollbar,
 .contract-list-table .ant-table-content::-webkit-scrollbar {
-    height: 8px;
-    /* Thinner scrollbar */
-    width: 8px;
-    z-index: 1;
-    /* Low z-index so fixed columns can cover it */
+    display: none;
 }
 
-.contract-list-table .ant-table-body::-webkit-scrollbar-track,
-.contract-list-table .ant-table-content::-webkit-scrollbar-track {
-    background: transparent;
-    /* Transparent track */
+.contract-list-table .ant-table-body,
+.contract-list-table .ant-table-content {
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* IE/Edge */
 }
-
-.contract-list-table .ant-table-body::-webkit-scrollbar-thumb,
-.contract-list-table .ant-table-content::-webkit-scrollbar-thumb {
-    background: #d9d9d9;
-    border-radius: 4px;
-}
-
-.contract-list-table .ant-table-body::-webkit-scrollbar-thumb:hover,
-.contract-list-table .ant-table-content::-webkit-scrollbar-thumb:hover {
-    background: #bfbfbf;
-}
-
-/* 2. Z-Index Hack for "Scrollbar Cutoff" */
-/* 
-   The fixed left columns (.ant-table-cell-fix-left) need to be ON TOP of the scrollbar.
-   By default they are sticky. giving them high z-index and explicit background ensure opaqueness.
-*/
-.contract-list-table .ant-table-cell-fix-left {
-    z-index: 20 !important;
-    /* Higher than scrollbar (1) and default AntD (usually < 10 for cells) */
-    /* Background is usually set by AntD theme tokens, but valid to reinforce if transparent */
-    /* background: #fff; */
-}
-
-/* Ensure the last fixed column has a shadow/border if desired, AntD handles this via ::after */

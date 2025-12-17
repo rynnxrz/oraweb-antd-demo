@@ -1,9 +1,11 @@
-export const useTableScroll = (scrollContainerSelector: string = '.ant-table-body') => {
+import { useCallback, useEffect, useRef } from 'react';
 
-    const scrollToSection = (sectionKey: string) => {
-        // 1. Find the anchor element (Header Cell)
-        // Note: We specifically look for the TH to ensure we get the header position
+export const useTableScroll = () => {
+
+    const scrollToSection = useCallback((sectionKey: string) => {
+        // 1. 找到目标锚点 (Header Cell)
         const targetClass = `col-anchor-${sectionKey}`;
+        // 尝试找 th (表头) 或者 td (单元格)，优先表头
         const targetEl = document.querySelector(`th.${targetClass}`) as HTMLElement ||
             document.querySelector(`.${targetClass}`) as HTMLElement;
 
@@ -12,75 +14,141 @@ export const useTableScroll = (scrollContainerSelector: string = '.ant-table-bod
             return;
         }
 
-        // 2. Find the scroll container
-        // Ant Design Table structure usually has .ant-table-body (for vertical scroll) or .ant-table-content (for horizontal)
-        // We look for the one that actually has overflow-x
+        // 2. 找到滚动容器
         const tableWrapper = targetEl.closest('.ant-table-wrapper');
-        const scrollContainer = tableWrapper?.querySelector('.ant-table-body') as HTMLElement ||
-            tableWrapper?.querySelector('.ant-table-content') as HTMLElement ||
-            document.querySelector(scrollContainerSelector) as HTMLElement;
+        if (!tableWrapper) return;
+
+        // Ant Design 的滚动容器通常是 .ant-table-body (有固定头时) 或 .ant-table-content
+        const scrollContainer = tableWrapper.querySelector('.ant-table-body') as HTMLElement ||
+            tableWrapper.querySelector('.ant-table-content') as HTMLElement;
 
         if (!scrollContainer) {
             console.warn('[useTableScroll] Scroll container not found');
             return;
         }
 
-        // 3. Dynamic Fixed Column Calculation
-        // Find all fixed-left header cells in the same table and sum their widths
-        // OR find the specific "last fixed left" cell.
+        // 3. 核心修复：重新计算固定列宽度 (fixedOffset)
+        // 逻辑：找到表格里所有标记为 "fix-left" 的表头，把它们的实际宽度加起来。
         let fixedOffset = 0;
 
-        // Strategy: Get the "sticky" left position of the target element? No, target is NOT sticky usually.
-        // We need to know how much "sticky" content covers the left side.
-        // Find all sticky left THs in the thead
-        const thead = targetEl.closest('thead');
+        // 获取 table 下的 thead
+        const thead = tableWrapper.querySelector('.ant-table-thead');
         if (thead) {
-            const fixedCells = Array.from(thead.querySelectorAll('.ant-table-cell-fix-left')) as HTMLElement[];
-            if (fixedCells.length > 0) {
-                // The widely compatible way involves getting the rightmost edge of the fixed columns
-                // But simply: sticky columns usually have 'left: ...px' set.
-                // The last fixed column's 'left' + its 'offsetWidth' = total fixed width.
-                // Let's find the one with the largest 'left' value + width.
+            // 找到所有左侧固定的表头单元格
+            // Note: Ant Design uses .ant-table-cell-fix-start (newer versions with RTL support)
+            const fixedCells = thead.querySelectorAll('.ant-table-cell-fix-left, .ant-table-cell-fix-start');
 
-                let maxRight = 0;
-                fixedCells.forEach(cell => {
-                    // Note: cell.style.left might be empty if handled by class (rare in antd dynamic)
-                    // Inspecting computed style is safer but slow.
-                    // AntD sets style="left: Xpx" on these cells.
-                    const leftVal = parseFloat(cell.style.left || '0');
-                    const rightEdge = leftVal + cell.offsetWidth;
-                    if (rightEdge > maxRight) maxRight = rightEdge;
-                });
-
-                fixedOffset = maxRight;
-            }
+            fixedCells.forEach((cell) => {
+                // 累加它们的实际渲染宽度
+                fixedOffset += (cell as HTMLElement).offsetWidth;
+            });
         }
 
-        if (fixedOffset === 0) {
-            // Fallback: Try valid selectors if style parsing failed
-            const lastFixed = thead?.querySelector('.ant-table-cell-fix-left-last') as HTMLElement;
-            if (lastFixed) {
-                // This cell marks the end of fixed section.
-                // Its offsetLeft + offsetWidth should be it? 
-                // Careful: offsetLeft is relative to TR/Table.
-                fixedOffset = lastFixed.offsetLeft + lastFixed.offsetWidth;
-            }
-        }
+        // 4. 执行滚动
+        // 目标位置 = 目标元素距离表格最左边的距离 - 左侧固定区域的宽度
+        let scrollToX = targetEl.offsetLeft - fixedOffset;
 
-        // 4. Execute Scroll
-        // targetEl.offsetLeft is the distance from the left edge of the SCROLLABLE content.
-        // We want that point to be at 'fixedOffset' pixels from the left of the VIEWPORT.
-        // So scrollLeft = targetEl.offsetLeft - fixedOffset.
-
-        const scrollToX = targetEl.offsetLeft - fixedOffset;
-
-        // console.log('[useTableScroll]', { sectionKey, targetLeft: targetEl.offsetLeft, fixedOffset, scrollToX });
+        // 优化：给一点点缓冲 (Buffer)，不要贴得太死，比如多留 1px 防止边框重合，或者 0
+        // 如果觉得贴得太紧，可以写 - 10
+        scrollToX = Math.max(0, scrollToX);
 
         scrollContainer.scrollTo({
-            left: Math.max(0, scrollToX),
+            left: scrollToX,
             behavior: 'smooth'
         });
-    };
+    }, []);
 
     return { scrollToSection };
+};
+
+export const useTableScrollSpy = (
+    wrapperRef: React.RefObject<any>,
+    sections: string[],
+    setActiveTab: (tab: string) => void,
+    lockRef?: React.MutableRefObject<boolean> // New parameter
+) => {
+    // Use a ref to store sections to avoid effect re-running on array literal
+    const sectionsRef = useRef(sections);
+    sectionsRef.current = sections;
+
+    useEffect(() => {
+        const wrapper = wrapperRef.current;
+        if (!wrapper) return;
+
+        const scrollContainer = wrapper.querySelector('.ant-table-body') as HTMLElement ||
+            wrapper.querySelector('.ant-table-content') as HTMLElement;
+        if (!scrollContainer) return;
+
+        let rafId: number;
+        let isScrolling = false; // Debounce flag if needed, but RAF is enough
+
+        const checkActive = () => {
+            if (lockRef && lockRef.current) return; // Guard: skip if locked
+
+            if (!wrapper) return;
+
+            // Calculate fixed offset
+            let fixedOffset = 0;
+            const thead = wrapper.querySelector('.ant-table-thead');
+            if (thead) {
+                const fixedCells = thead.querySelectorAll('.ant-table-cell-fix-left, .ant-table-cell-fix-start');
+                fixedCells.forEach((cell: any) => {
+                    fixedOffset += (cell as HTMLElement).offsetWidth;
+                });
+            }
+
+            const currentScroll = scrollContainer.scrollLeft;
+            const buffer = 10; // Scroll buffer
+
+            // Find candidates
+            const candidates = sectionsRef.current.map(section => {
+                const targetClass = `col-anchor-${section}`;
+                // Search inside wrapper to be safe
+                const el = wrapper.querySelector(`.${targetClass}`) as HTMLElement;
+                if (!el) return null;
+
+                // Target scroll position for this section
+                const targetScroll = el.offsetLeft - fixedOffset;
+                return { section, targetScroll };
+            }).filter((c): c is { section: string, targetScroll: number } => c !== null);
+
+            // Sort by target position
+            candidates.sort((a, b) => a.targetScroll - b.targetScroll);
+
+            // Find the active section
+            // It's the last section where currentScroll >= targetScroll - buffer
+            let activeSection = candidates[0]?.section; // Default to first
+
+            for (let i = candidates.length - 1; i >= 0; i--) {
+                if (currentScroll >= candidates[i].targetScroll - buffer) {
+                    activeSection = candidates[i].section;
+                    break;
+                }
+            }
+
+            if (activeSection) {
+                setActiveTab(activeSection);
+            }
+            isScrolling = false;
+        };
+
+        const onScroll = () => {
+            if (!isScrolling) {
+                isScrolling = true;
+                rafId = requestAnimationFrame(checkActive);
+            }
+        };
+
+        scrollContainer.addEventListener('scroll', onScroll, { passive: true });
+
+        // Check initially too (e.g. after data load)
+        // Add a small delay to ensure rendering
+        const timeoutId = setTimeout(checkActive, 500);
+
+        return () => {
+            scrollContainer.removeEventListener('scroll', onScroll);
+            cancelAnimationFrame(rafId);
+            clearTimeout(timeoutId);
+        };
+    }, [wrapperRef, setActiveTab, lockRef]);
 };
