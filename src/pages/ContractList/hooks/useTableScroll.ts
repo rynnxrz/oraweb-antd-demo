@@ -80,7 +80,6 @@ export const useTableScrollSpy = (
         if (!scrollContainer) return;
 
         let rafId: number;
-        let isScrolling = false; // Debounce flag if needed, but RAF is enough
 
         const checkActive = () => {
             if (lockRef && lockRef.current) return; // Guard: skip if locked
@@ -129,14 +128,11 @@ export const useTableScrollSpy = (
             if (activeSection) {
                 setActiveTab(activeSection);
             }
-            isScrolling = false;
         };
 
         const onScroll = () => {
-            if (!isScrolling) {
-                isScrolling = true;
-                rafId = requestAnimationFrame(checkActive);
-            }
+            cancelAnimationFrame(rafId);
+            rafId = requestAnimationFrame(checkActive);
         };
 
         scrollContainer.addEventListener('scroll', onScroll, { passive: true });

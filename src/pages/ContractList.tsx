@@ -35,7 +35,7 @@ export const mapContractToUi = (c: GetContractResponse): Contract => {
         client: c.brand || 'Unknown', // Using Brand as Client equivalent for now
         brand: c.brand || undefined,
         productName: product?.product_name || 'Unknown Product',
-        spec: product?.packaging_unit || undefined,
+        spec: product ? `${product.packaging_quantity || ''} ${product.packaging_unit || ''}`.trim() || undefined : undefined,
         totalQty: product?.total_quantity || 0,
         scheduledQty: product?.actual_quantity_produced || 0, // Using produced as scheduled proxy or 0
         status: uiStatus,
