@@ -11,11 +11,11 @@ export interface Contract {
     startDate?: string;
     dueDate?: string;
 
-    // Status Flags for Reqs Tab
-    gaccStatus?: 'Done' | 'Pending' | 'Issue';
-    codingStatus?: 'Done' | 'Pending' | 'Issue';
-    shipMode?: string;
-    labelStatus?: 'Done' | 'Pending';
+    // Status Flags for Reqs Tab (Mapped to Schema: t_products)
+    gacc_note?: string;          // was gaccStatus
+    coding_format?: string;      // was codingStatus
+    expected_shipping_method?: string; // was shipMode
+    labeling_requirement?: string; // was labelStatus
 
     // Finance Tab
     invoiceNo?: string;
@@ -24,9 +24,11 @@ export interface Contract {
 
     // Pkg Tab
     pkgStatus?: 'Ready' | 'Partial' | 'Missing';
+    pkg_arrive_date?: string; // e.g., '2024-11-01'
 
     // Plan Tab
     materialStatus?: 'Ready' | 'Partial' | 'Missing';
+    schedule_notes?: string;
 
     stageInfo?: {
         stage: string;

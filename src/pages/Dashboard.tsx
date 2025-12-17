@@ -40,7 +40,7 @@ const Dashboard: React.FC = () => {
             <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
                 {topKpis?.map((kpi: any, idx: number) => (
                     <Col xs={24} sm={12} md={6} key={idx}>
-                        <Card bordered={false} bodyStyle={{ padding: 20 }} className="shadow-sm">
+                        <Card variant="borderless" styles={{ body: { padding: 20 } }} className="shadow-sm">
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
                                 <div>
                                     <Text type="secondary" style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase' }}>{kpi.title}</Text>
@@ -61,7 +61,7 @@ const Dashboard: React.FC = () => {
             {/* Row 2: Key Contracts & Zombie */}
             <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
                 <Col xs={24} lg={16}>
-                    <Card title="Key Contracts (Blockers)" bordered={false} className="shadow-sm" style={{ height: '100%' }}>
+                    <Card title="Key Contracts (Blockers)" variant="borderless" className="shadow-sm" style={{ height: '100%' }}>
                         <Table
                             dataSource={problemContracts}
                             columns={columns}
@@ -72,7 +72,7 @@ const Dashboard: React.FC = () => {
                     </Card>
                 </Col>
                 <Col xs={24} lg={8}>
-                    <Card title="Zombie Inventory" bordered={false} className="shadow-sm" style={{ height: '100%' }}>
+                    <Card title="Zombie Inventory" variant="borderless" className="shadow-sm" style={{ height: '100%' }}>
                         <div style={{ height: 300 }}>
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={zombieData} layout="vertical" margin={{ left: 20 }}>
@@ -91,9 +91,9 @@ const Dashboard: React.FC = () => {
             {/* Row 3: Detail Analysis */}
             <Row gutter={[16, 16]}>
                 <Col xs={24} lg={16}>
-                    <Card title="Cycle Time Analysis (Avg Days)" bordered={false} className="shadow-sm">
+                    <Card title="Cycle Time Analysis (Avg Days)" variant="borderless" className="shadow-sm">
                         <div style={{ height: 260 }}>
-                            <ResponsiveContainer>
+                            <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={leadTimeData}>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
                                     <XAxis dataKey="stage" tick={{ fontSize: 11 }} />
@@ -107,9 +107,9 @@ const Dashboard: React.FC = () => {
                     </Card>
                 </Col>
                 <Col xs={24} lg={8}>
-                    <Card title="Data Quality Issues" bordered={false} className="shadow-sm">
-                        <div style={{ height: 260, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <ResponsiveContainer>
+                    <Card title="Data Quality Issues" variant="borderless" className="shadow-sm">
+                        <div style={{ height: 260 }}>
+                            <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>
                                     <Pie
                                         data={qualityData}

@@ -19,30 +19,35 @@ interface AppState {
 const MOCK_CONTRACTS: Contract[] = [
     {
         id: '1', contractNo: 'C2411-003', client: 'Little Umbrella', brand: 'Little Umbrella', productName: 'Kids Vitamin C', spec: '60ct Bottle', totalQty: 50000, scheduledQty: 0, status: 'Pending', startDate: '2024-11-01',
-        gaccStatus: 'Done', codingStatus: 'Pending', shipMode: 'Sea', labelStatus: 'Done',
-        invoiceNo: 'INV-2411-003', depositStatus: 'Paid', balanceStatus: 'Unpaid', pkgStatus: 'Ready',
-        stageInfo: { stage: 'S1 Payment', delayDays: 45, status: 'Blocker' }
+        gacc_note: 'Registered: GACC-2024-998', coding_format: 'LOT: YYYYMMDD / EXP: 2YR', expected_shipping_method: 'Sea', labeling_requirement: 'Standard FDA v2.1',
+        invoiceNo: 'INV-2411-003', depositStatus: 'Paid', balanceStatus: 'Unpaid', pkgStatus: 'Ready', pkg_arrive_date: '2024-10-25',
+        stageInfo: { stage: 'S1 Payment', delayDays: 45, status: 'Blocker' },
+        schedule_notes: 'Urgent for Nov Promo'
     },
     {
         id: '2', contractNo: 'C2411-008', client: 'PowerGums', brand: 'PowerGums', productName: 'Energy Chews', spec: '10pk Box', totalQty: 120000, scheduledQty: 0, status: 'Pending', startDate: '2024-11-05',
-        gaccStatus: 'Issue', codingStatus: 'Done', shipMode: 'Air', labelStatus: 'Pending',
+        gacc_note: 'Missing Registration', coding_format: 'Custom: MM/DD/YY', expected_shipping_method: 'Air', labeling_requirement: 'Pending Artwork',
         depositStatus: 'Unpaid', pkgStatus: 'Missing',
-        stageInfo: { stage: 'S2 Material', delayDays: 20, status: 'Blocker' }
+        stageInfo: { stage: 'S2 Material', delayDays: 20, status: 'Blocker' },
+        schedule_notes: 'Wait for artwork'
     },
     {
         id: '3', contractNo: 'C2410-001', client: 'Vitality', brand: 'Vitality', productName: 'Hair & Nail', spec: '90ct Jar', totalQty: 30000, scheduledQty: 30000, status: 'Production', startDate: '2024-10-15', dueDate: '2024-12-20',
-        gaccStatus: 'Done', codingStatus: 'Done', shipMode: 'Sea', labelStatus: 'Done',
-        depositStatus: 'Paid', pkgStatus: 'Ready'
+        gacc_note: 'Verified (Ref: 8871)', coding_format: 'Std', expected_shipping_method: 'Sea', labeling_requirement: 'Compliant',
+        depositStatus: 'Paid', pkgStatus: 'Ready', pkg_arrive_date: '2024-10-10',
+        schedule_notes: 'Running on Line 2'
     },
     {
         id: '4', contractNo: 'C2409-015', client: 'Muscle', brand: 'MuscleStats', productName: 'Whey Protein', spec: '2kg Tub', totalQty: 10000, scheduledQty: 0, status: 'Pending', startDate: '2024-09-20',
-        gaccStatus: 'Pending', codingStatus: 'Issue',
-        depositStatus: 'Paid', pkgStatus: 'Partial'
+        gacc_note: 'Pending Renewal', coding_format: 'Review Needed',
+        depositStatus: 'Paid', pkgStatus: 'Partial',
+        schedule_notes: 'Check inventory'
     },
     {
         id: '5', contractNo: 'C2412-002', client: 'NatureBest', brand: 'NatureBest', productName: 'Multivitamin', spec: '30ct Sachet', totalQty: 75000, scheduledQty: 0, status: 'Pending', startDate: '2024-12-01',
-        gaccStatus: 'Done', codingStatus: 'Done',
-        depositStatus: 'Unpaid', pkgStatus: 'Ready'
+        gacc_note: 'OK', coding_format: 'Standard',
+        depositStatus: 'Unpaid', pkgStatus: 'Ready', pkg_arrive_date: '2024-11-20',
+        schedule_notes: 'Normal production'
     },
 ];
 
