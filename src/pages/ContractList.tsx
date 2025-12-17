@@ -1,23 +1,101 @@
-import React, { useState } from 'react';
-import { Table, Space, Segmented, Input, Select } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Table, Space, Segmented, Input, Select, message } from 'antd';
 import { PageTableWrapper } from '../components/common/PageTableWrapper';
 import { useNavigate } from 'react-router-dom';
 import { AppstoreOutlined, DollarOutlined, DropboxOutlined, ScheduleOutlined } from '@ant-design/icons';
-import { useAppStore } from '../store/useAppStore';
-import { useContractColumns } from './ContractList/useContractColumns';
+import { useContractColumns } from './ContractList/hooks/useContractColumns';
+import { useTableScroll } from './ContractList/hooks/useTableScroll';
+import { contractsApi } from '../apis';
+import type { GetContractResponse } from '../types/schema';
+import { ContractStatusEnum } from '../types/schema';
+import type { Contract } from '../types';
 
+import './ContractList/ContractList.css';
+
+// -- Adapter: Map API Schema to UI Contract --
+export const mapContractToUi = (c: GetContractResponse): Contract => {
+    // Assuming single product for now as per old UI
+    const product = c.products?.[0];
+
+    // Map Status Enum to UI Status
+    // ContractStatusEnum: NEW, PENDING_PREPARATION, PENDING_SCHEDULING, PENDING_PRODUCTION, PENDING_PRODUCTION_COMPLETE, PENDING_SHIPPING, PENDING_SHIPPING_QUANTITY, COMPLETED
+    let uiStatus: Contract['status'] = 'Pending';
+    if (c.status === ContractStatusEnum.PENDING_PRODUCTION || c.status === ContractStatusEnum.PENDING_PRODUCTION_COMPLETE) {
+        uiStatus = 'Production';
+    } else if (c.status === ContractStatusEnum.COMPLETED) {
+        uiStatus = 'Completed';
+    } else if (c.status === ContractStatusEnum.PENDING_SCHEDULING) {
+        uiStatus = 'Pending'; // Or separate status if UI supported it
+    }
+
+    return {
+        id: c.contract_id,
+        contractNo: c.contract_number || '-',
+        client: c.brand || 'Unknown', // Using Brand as Client equivalent for now
+        brand: c.brand || undefined,
+        productName: product?.product_name || 'Unknown Product',
+        spec: product?.packaging_unit || undefined,
+        totalQty: product?.total_quantity || 0,
+        scheduledQty: product?.actual_quantity_produced || 0, // Using produced as scheduled proxy or 0
+        status: uiStatus,
+        startDate: c.signing_date || undefined,
+        dueDate: c.estimated_production_completion_date || undefined,
+
+        // Reqs
+        gacc_note: product?.gacc_note || undefined,
+        coding_format: product?.coding_format || undefined,
+        expected_shipping_method: product?.expected_shipping_method || undefined,
+        labeling_requirement: product?.labeling_requirement || undefined,
+
+        // Finance
+        invoiceNo: c.invoice_number || undefined,
+        depositStatus: c.deposit_payment_status === 'received' ? 'Paid' : 'Unpaid',
+        balanceStatus: c.final_payment_status === 'received' ? 'Paid' : 'Unpaid', // simplified
+
+        // Pkg
+        pkgStatus: 'Ready', // Mock default
+        pkg_arrive_date: undefined,
+
+        // Plan
+        schedule_notes: product?.production_schedule_notes || undefined,
+        stageInfo: { stage: 'Processing', delayDays: 0, status: 'Normal' } // Mock
+    };
+};
 
 const ContractList: React.FC = () => {
-    // const { token } = theme.useToken(); // Unused
-    const contracts = useAppStore((state) => state.contracts);
     const navigate = useNavigate();
 
     // -- State --
+    const [contracts, setContracts] = useState<Contract[]>([]);
+    const [loading, setLoading] = useState(true);
+
     // Options: 'reqs', 'finance', 'pkg', 'plan'
     const [activeTab, setActiveTab] = useState<string>('reqs');
     const [searchText, setSearchText] = useState('');
     const [filterBrand, setFilterBrand] = useState('All');
     const [filterStatus, setFilterStatus] = useState('Pending');
+
+    // -- Hooks --
+    const { scrollToSection } = useTableScroll();
+    const columns = useContractColumns(navigate);
+
+    // -- Fetch Data --
+    useEffect(() => {
+        const fetchContracts = async () => {
+            try {
+                setLoading(true);
+                const apiData = await contractsApi.getContracts({});
+                const uiData = apiData.map(mapContractToUi);
+                setContracts(uiData);
+            } catch (err) {
+                console.error(err);
+                message.error('Failed to load contracts');
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchContracts();
+    }, []);
 
     // -- Derived Data --
     const filteredContracts = contracts.filter(c => {
@@ -32,10 +110,12 @@ const ContractList: React.FC = () => {
 
     const uniqueBrands = Array.from(new Set(contracts.map(c => c.brand).filter(Boolean)));
 
-    // -- Columns --
-    const columns = useContractColumns(activeTab, navigate);
+    // -- Logic --
+    const handleTabClick = (value: string) => {
+        setActiveTab(value);
+        scrollToSection(value);
+    };
 
-    // -- UI --
     // -- UI --
     return (
         <PageTableWrapper
@@ -77,17 +157,22 @@ const ContractList: React.FC = () => {
                         { label: 'Plan', value: 'plan', icon: <ScheduleOutlined /> },
                     ]}
                     value={activeTab}
-                    onChange={setActiveTab}
+                    onChange={handleTabClick}
                 />
             }
             table={
                 <Table
+                    className="contract-list-table"
                     dataSource={filteredContracts}
                     columns={columns as any}
                     rowKey="id"
                     pagination={{ pageSize: 10, showSizeChanger: false }}
                     size="middle"
-                    scroll={{ x: 'max-content' }}
+                    loading={loading}
+                    // Fix double scrollbar by setting Y scroll and accounting for layout
+                    // Assuming roughly 280px for header/filters + some buffer. 
+                    // Use CSS variable if available or calc.
+                    scroll={{ x: 'max-content', y: 'calc(100vh - 280px)' }}
                     tableLayout="fixed"
                 />
             }
