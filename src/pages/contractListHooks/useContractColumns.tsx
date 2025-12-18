@@ -1,7 +1,7 @@
 import { theme, Typography, Tag, Badge, Button } from 'antd';
-import type { Contract } from '../../../types';
-import StatusDot from '../../../components/common/StatusDot';
-import StatusTag from '../../../components/common/StatusTag';
+import type { Contract } from '../../types';
+import StatusDot from '../../components/common/StatusDot';
+import StatusTag from '../../components/common/StatusTag';
 import dayjs from 'dayjs';
 
 const { Text } = Typography;

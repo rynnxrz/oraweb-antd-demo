@@ -1,0 +1,89 @@
+/* Shared styles for Dashboard Table and Matrix components */
+
+/* ===== Header Styles (Shared) ===== */
+/* ===== Header Styles (Shared) ===== */
+.header {
+    /* Container for Matrix Header Row */
+    font-size: 12px;
+    font-weight: bold;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.headerText {
+    /* Shared text styling for header content */
+    font-size: 12px;
+    font-weight: bold;
+    /* Color handled by inline styles with token */
+}
+
+/* Legacy classes kept but padding minimized/removed where handled by container */
+.headerCell {
+    /* Used by Matrix Container cells */
+    padding: 8px;
+    /* Standard AntD small padding */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.headerCellFirst {
+    /* Used by Matrix Container cells */
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding-left: 16px;
+    /* First column indent matching table */
+}
+
+/* ===== Body/Row Styles ===== */
+.row {
+    border-bottom: 1px solid rgba(5, 5, 5, 0.06);
+}
+
+.cell {
+    padding: 8px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.cellFirst {
+    text-align: left;
+    padding-left: 16px;
+}
+
+/* ===== Matrix Grid Layout ===== */
+.matrixGrid {
+    display: grid;
+    gap: 8px;
+    align-items: center;
+}
+
+.matrixCell {
+    border-radius: 4px;
+    text-align: center;
+    font-size: 10px;
+    padding: 4px;
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ===== Contract/Label Cell ===== */
+.labelCell {
+    font-size: 11px;
+    padding-left: 16px;
+    text-align: left;
+}
+
+.labelPrimary {
+    font-weight: bold;
+}
+
+.labelSecondary {
+    font-size: 10px;
+    opacity: 0.65;
+}

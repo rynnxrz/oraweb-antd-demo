@@ -30,6 +30,27 @@ export interface Contract {
     materialStatus?: 'Ready' | 'Partial' | 'Missing';
     schedule_notes?: string;
 
+    // Dashboard & PRD Required Fields
+    signingDate?: string; // YYYY-MM-DD
+
+    // Payment Details
+    depositDate?: string;
+    preProdPaymentDate?: string;
+    finalPaymentDate?: string;
+    finalPaymentStatus?: 'Paid' | 'Unpaid' | 'Pending';
+    preProdPaymentStatus?: 'Paid' | 'Unpaid' | 'Pending';
+
+    // Production & Materials
+    materialsReadyDate?: string;
+    productionStartDate?: string;
+    productionEndDate?: string;
+    estimatedCompletionDate?: string;
+
+    // Shipping & Meta
+    shippingDate?: string;
+    lastUpdated?: string; // timestamp or date string for "Zombie" check
+
+    // Computed/Analysis Flags (Optional, if we want to store them on object)
     stageInfo?: {
         stage: string;
         delayDays: number;

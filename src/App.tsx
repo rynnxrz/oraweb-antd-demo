@@ -1,20 +1,14 @@
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ConfigProvider } from 'antd';
-import { MainLayout } from './components/MainLayout';
+import { MainLayout } from './layouts/MainLayout';
 import ContractList from './pages/ContractList';
 import Scheduling from './pages/Scheduling';
 import Dashboard from './pages/Dashboard';
+import { antdTheme } from './theme/antdTheme';
 
 function App() {
   return (
-    <ConfigProvider
-      theme={{
-        token: {
-          colorPrimary: '#2A9D8F',
-          colorLink: '#2A9D8F',
-        },
-      }}
-    >
+    <ConfigProvider theme={antdTheme}>
       <HashRouter>
         <MainLayout>
           <Routes>

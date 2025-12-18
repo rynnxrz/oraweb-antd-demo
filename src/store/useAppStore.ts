@@ -17,6 +17,10 @@ interface AppState {
     // Actions
     toggleSidebar: () => void;
 
+    // Dashboard State
+    dashboardFilter: string;
+    setDashboardFilter: (filter: string) => void;
+
     // Legacy Actions (No-ops or simple state mutations for now)
     addSchedule: (schedule: Omit<Schedule, 'id'>) => void;
     deleteSchedule: (scheduleId: string) => void;
@@ -38,6 +42,9 @@ export const useAppStore = create<AppState>()(
                 zombieData: [],
                 qualityData: []
             },
+            dashboardFilter: 'all',
+
+            setDashboardFilter: (filter) => set({ dashboardFilter: filter }),
 
             toggleSidebar: () => set((state) => ({ isSidebarCollapsed: !state.isSidebarCollapsed })),
 

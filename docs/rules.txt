@@ -1,0 +1,153 @@
+00-safety.md
+# Safety & Permissions (NON-NEGOTIABLE)
+
+- Never run destructive commands (rm -rf, sudo, format).
+- Only modify files inside this repo.
+- If a change may delete/rename many files, STOP and ask for confirmation.
+- For multi-file refactors, must produce artifacts: updated tree + changed file list.
+
+05-workflow.md
+# Workflow: HTML to React Migration
+
+**Core Strategy:** Atomization (Break Down -> Map -> Reassemble).
+
+For every migration task:
+1.  **Data Extraction First:** 
+    - Identify the raw JS data (e.g., `CONTRACT_DATA`) in the source HTML.
+    - Move it to `src/data/dummy.ts` (wrapped with Zod types).
+2.  **Component Identification:** 
+    - Select a UI block from HTML (e.g., `.kpi-card`).
+    - Identify the corresponding Ant Design component (e.g., `Card` + `Statistic`).
+3.  **Implementation:**
+    - Create the React component in `src/components/**`.
+    - **Translate** Tailwind classes to Ant Design Props/Tokens (Do NOT just copy className).
+4.  **Verification:**
+    - Mount the component in a Route to verify it looks like the HTML prototype.
+
+10-repo-scope.md
+# Repo Scope: UI Verification & Component Library
+
+- **Goal:** Convert the provided "High-Fidelity HTML Prototype" into a production-grade **React + Ant Design Component Library**.
+- **Role:** This is a bridge between Design (Figma/HTML) and Engineering (Backend).
+- **Non-Goals:** No real backend integration. No complex state management unless necessary for UI interaction.
+- **Focus:**
+  1. **Strict Ant Design Usage:** Use standard components (`Table`, `Menu`, `Card`) instead of custom HTML divs.
+  2. **Type Safety:** All data flow must be typed via Zod.
+  3. **Visual Fidelity:** The React version must match the HTML prototype's look & feel using AntD Tokens.
+
+15-tech-alignment.md
+# Tech Alignment & Documentation Context
+
+- **Core Library:** Ant Design (v5/v6).
+- **Knowledge Base:** 
+  - **CRITICAL:** You must refer to the provided **Ant Design `LLMs.txt`** (or official docs) for component APIs.
+  - Do not hallucinate deprecated props (e.g., avoid v4 props like `bodyStyle`, use `styles.body` in v5).
+- **Styling Strategy:**
+  - 100% usage of `ConfigProvider` for global theming.
+  - Use `design tokens` (e.g., `token.colorError`) instead of hardcoded hex values.
+- **Data Contract:**
+  - **Zod / Types:** The SINGLE source of truth. UI components must strictly type their Props using the Schema defined in `src/types`.
+- **Routing:** TanStack Router.
+
+20-frontend-architecture.md
+# Frontend Architecture (UI-First)
+
+Required folders:
+- `src/routes/**`       : Pages (composing components).
+- `src/components/**`   : Atomic UI components (The migrated widgets).
+- `src/data/**`         : Static Data extracted from HTML (Zod validated).
+- `src/theme/**`        : Tokens, Typography, AntD Theme Config.
+- `src/types/**`        : Zod Schemas & inferred Types.
+
+Rules:
+- **Routes/Pages:** Import data from `src/data` and pass it to components.
+- **Components:** Pure/Dumb. They receive `data` and `callbacks` via Props.
+- **Data Flow:** `src/data/dummy.ts` -> `Route Loader` -> `Page` -> `Component`.
+
+30-design-system.md
+# Design System: Tailwind to Ant Design Mapping
+
+**Rule:** Do not copy-paste Tailwind classes from HTML to React unless absolutely necessary for layout (Flexbox/Grid).
+
+**Mapping Guide:**
+- HTML `text-red-500` -> React `token.colorError` or `<Text type="danger">`
+- HTML `bg-white shadow-sm` -> React `<Card bordered={false} shadow="sm">` (or standard Card style)
+- HTML `text-xl font-bold` -> React `<Typography.Title level={4}>`
+- HTML `p-4` -> React `styles={{ padding: token.paddingLG }}`
+
+**Styling Priority:**
+1. Ant Design Component Props (e.g., `<Space size="large">`)
+2. Ant Design Token System (via `useToken`)
+3. CSS Modules (for complex custom layouts)
+4. Inline Styles (avoid if possible)
+
+35-antd-theming.md
+# Ant Design Theming Rules
+
+- AntD theme must be configured via `ConfigProvider`.
+- All theme configuration lives in `src/theme/antdTheme.ts`.
+- Components may read tokens via `theme/useToken` hook ONLY for layout decisions.
+- Do not scatter ConfigProvider instances; only one at app root.
+
+40-data-layer.md
+# Data Strategy: Migration from Legacy JS
+
+Since we are porting from an HTML prototype:
+
+Rules:
+1.  **Extract & Standardize:** 
+    - Copy the `CONTRACT_DATA`, `MACHINE_DATA`, etc., from the HTML script tag.
+    - Paste them into `src/data/dummy.ts`.
+    - **Refactor:** Wrap them with `z.array(Schema).parse(...)` to ensure they match our strict Zod definitions.
+2.  **Consumption:**
+    - Components must NOT import `dummy.ts` directly. They should accept data via Props.
+    - Only *Pages/Routes* should import `dummy.ts`.
+
+45-state-management.md
+# State Management
+
+- **Server State (Simulated):** Handled by TanStack Router Loaders (loading dummy data).
+- **UI State:** 
+  - Use local React `useState` for simple toggles (e.g., expanding a card).
+  - Use Zustand or URL Search Params (TanStack Router) for global filters (e.g., "Filter by Status").
+
+50-component-standard.md
+# Component Development Standard
+
+To ensure easy handoff to engineering:
+
+1.  **Atomic Design:**
+    - `src/components/atoms`: StatusBadge, CustomButton.
+    - `src/components/organisms`: ContractTable, KPISection.
+2.  **Prop Definitions:**
+    - Every component must have a clearly defined `Interface`.
+    - *Example:* `interface ContractTableProps { contracts: Contract[]; isLoading?: boolean; }`
+3.  **Documentation:**
+    - Add a comment block above key components describing which HTML section it replaces.
+
+60-routing.md
+# Routing & Data Loading (TanStack Router)
+
+**Standard:** Use `@tanstack/react-router`.
+
+Rules:
+1.  **Loaders:** Use the `loader` function to return data from `src/data/dummy.ts`.
+2.  **Search Params:** Use `validateSearch` (Zod) to manage URL query parameters (filters, tabs).
+    - *Example:* `?tab=finance` instead of local state for tab switching.
+
+70-quality-and-types.md
+# Quality, Types, and Naming
+
+- **Zod First:** Define the Schema with Zod first (`src/types/schema.zod.ts`).
+- **No Any:** No 'any' types allowed.
+- **Naming:**
+  - Components: PascalCase (`ContractTable.tsx`)
+  - Types: PascalCase (`Contract`)
+  - Data: CONSTANT_CASE (`DUMMY_CONTRACTS`)
+
+80-no-hardcode-data.md
+# No Ad-hoc Hardcoded Data
+
+- **Centralization:** Do NOT write random objects inside components.
+- **Source:** All demo data must come from `src/data/dummy.ts`.
+- **Reason:** Ensures data consistency across different components (e.g., the Chart and the Table show the same numbers).

@@ -3,15 +3,15 @@ import { Table, Space, Segmented, Input, Select, message } from 'antd';
 import { PageTableWrapper } from '../components/common/PageTableWrapper';
 import { useNavigate } from 'react-router-dom';
 import { AppstoreOutlined, DollarOutlined, DropboxOutlined, ScheduleOutlined } from '@ant-design/icons';
-import { useContractColumns } from './ContractList/hooks/useContractColumns';
-import { useTableScroll, useTableScrollSpy } from './ContractList/hooks/useTableScroll';
+import { useContractColumns } from './contractListHooks/useContractColumns';
+import { useTableScroll, useTableScrollSpy } from './contractListHooks/useTableScroll';
 import TablePanner from '../components/common/TablePanner'; // Import TablePanner
 import { contractsApi } from '../apis';
 import type { GetContractResponse } from '../types/schema';
 import { ContractStatusEnum } from '../types/schema';
 import type { Contract } from '../types';
 
-import './ContractList/ContractList.css';
+import './ContractList.css';
 
 // -- Adapter: Map API Schema to UI Contract --
 export const mapContractToUi = (c: GetContractResponse): Contract => {

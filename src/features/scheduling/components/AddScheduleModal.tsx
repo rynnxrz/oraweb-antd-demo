@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Form, Select, DatePicker, InputNumber, Checkbox, Switch, Space, Divider, Input, Alert, Row, Col, Typography } from 'antd';
 import type { Dayjs } from 'dayjs';
-import { useAppStore } from '../store/useAppStore';
+import { useAppStore } from '../../../store/useAppStore';
 
 const { Text } = Typography;
 
